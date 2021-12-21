@@ -1,0 +1,45 @@
+.root {
+	background-color: rgba(114, 132, 235, 0.644);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+.grabacion {
+    width: 720px;
+    height: 480px;
+}
+
+.header{
+    color:rgb(43, 61, 161);
+	justify-content: center;
+	align-items: center;
+	display: flex;
+	flex-direction: column;
+    padding-top: 1%;    
+    padding-bottom: 1%;
+}
+
+.button{
+    color:#000;
+}
+
+.gray {
+    filter: grayscale();
+  }
+.red {
+    filter: blur(2px);
+  }
+.blue {
+    filter: rgb(43, 61, 161);
+  }
+.blur {
+    filter: blur(2px);
+  }
+
+.invert {
+    filter: invert(75%);
+  }
+
+.sepia {
+    filter: sepia(60%);
+  }
