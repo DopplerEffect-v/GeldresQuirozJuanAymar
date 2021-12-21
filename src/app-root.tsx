@@ -1,5 +1,6 @@
 import React, { useRef,useEffect,useState } from 'react';
 import Webcam from "react-webcam";
+import ReactDOM from "react-dom";
 import './App.css'
 
 function AppRoot(){
@@ -13,6 +14,31 @@ function AppRoot(){
   const [videoSourceOptions,setVideoSourceOptions]=useState<Record<string, string>[]>([]);
   const [audioSourceOptions,setAudioSourceOptions]=useState<Record<string, string>[]>([]);
   const chunks=useRef<any []>([]);
+
+  const [seconds, setSeconds] = useState(0);
+
+  const renders = useRef(0);
+  const inputRef = useRef(null);
+  const timerId = useRef(null);
+
+  const startTimer = () => {
+    timerId.current = setInterval(() => {
+      setSeconds(prev => prev + 1);
+    }, 1000)
+  }
+
+  const stopTimer = () => {
+    clearInterval(timerId.current);
+    timerId.current = 0;
+  }
+
+  const resetTimer = () => {
+    stopTimer();
+    if (seconds) {
+      setSeconds(0);
+    }
+  }
+
 
   function startRecording() {
     if(recording){
@@ -28,23 +54,33 @@ function AppRoot(){
         chunks.current.push(event.data);
       }
     }
-    streamRecorder.current.pause();
+    startTimer();
     setRecording(true);
   }
   function pauseRecording() {
+    if(!recording){
+      return;
+    }
+    streamRecorder.current.pause();
+    stopTimer();
+    setRecording(false);
+  }
+  function continueRecording() {
     if(recording){
       return;
     }
-    streamRecorder.current.start();
+    if(!streamRecorder.current){
+      return;
+    }
+    streamRecorder.current.resume();
     streamRecorder.current.ondataavailable=function(event: BlobEvent){
       if(chunks.current){
         chunks.current.push(event.data);
       }
     }
-    streamRecorder.current.pause();
+    startRecording();
     setRecording(true);
   }
-  
   useEffect(function() {
     if(recording){
       return;
@@ -56,7 +92,6 @@ function AppRoot(){
       type: "video/x-matroska;codecs=avc1,opus",
     });
     setDownload(URL.createObjectURL(blob));
-
     chunks.current=[];
   },[recording])
 
@@ -66,6 +101,7 @@ function AppRoot(){
     }
     streamRecorder.current.stop();
     setRecording(false);
+    resetTimer();
   }
   useEffect(function(){
     //getVideo();
@@ -136,13 +172,14 @@ function AppRoot(){
   return(
     <div className="root">
     <div className="container">
-      <div className="header">Webcam</div>
+      <h2>Webcam</h2>
       <div className="row">
         <div className="col-8 d-flex justify-content-center p-2">
         <div className="btn-group" role="group" aria-label="Basic example">
           <button type="button" className="btn btn-dark" onClick={startRecording} disabled={recording}>Start</button>
           <button type="button" className="btn btn-danger" onClick={stopRecording} disabled={!recording}>Stop</button>
-          <button type="button" className="btn btn-warning">Pause</button>
+          <button type="button" className="btn btn-warning" onClick={pauseRecording} disabled={!recording}>Pause</button>
+          <button type="button" className="btn btn-warning" onClick={continueRecording} disabled={recording}>Resume</button>
         </div>        
         </div>
         <div className="col d-flex justify-content-center p-2">
@@ -159,6 +196,7 @@ function AppRoot(){
           <option key={option.value} value={option.value}>{option.label}</option>
         ))}
       </select>
+      <p>Duracioón de la grabación en segundos: {seconds}</p>
       <div className="row d-flex align-items-center justify-content-center">
         <div className="col-8">
           <video ref={videoRef} autoPlay muted playsInline className={filtro}></video>
